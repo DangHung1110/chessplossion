@@ -33,9 +33,17 @@ class Player:
         # Di chuyển player theo direction nếu có thể
         if not self.alive:
             return False
+        
+        # Chỉ nhận lệnh di chuyển khi đã đứng đúng tâm ô (grid-aligned)
+        if self.pixel_x != self.target_x or self.pixel_y != self.target_y:
+            return False
             
         new_x = self.grid_x + direction[0]
         new_y = self.grid_y + direction[1]
+        
+        print(f"Player {self.player_id} trying to move from ({self.grid_x}, {self.grid_y}) to ({new_x}, {new_y})")
+        print(f"Target tile type: {game_map.get_tile(new_x, new_y)} (0=EMPTY, 1=WALL, 2=DESTRUCTIBLE)")
+        print(f"Is walkable: {game_map.is_walkable(new_x, new_y)}")
         
         # Check có đi được không
         if game_map.is_walkable(new_x, new_y):
@@ -46,7 +54,10 @@ class Player:
             self.target_x = new_x * TILE_SIZE + (TILE_SIZE - PLAYER_SIZE) // 2
             self.target_y = new_y * TILE_SIZE + (TILE_SIZE - PLAYER_SIZE) // 2
             
+            print(f"Player {self.player_id} moved successfully to ({self.grid_x}, {self.grid_y})")
             return True
+        else:
+            print(f"Player {self.player_id} cannot move to ({new_x}, {new_y}) - not walkable")
         return False
     
     def update(self):

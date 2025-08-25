@@ -5,8 +5,6 @@ class InputHandler:
     def __init__(self):
         self.keys_pressed = set()
         self.keys_just_pressed = set()
-        self.movement_timer = 0
-        self.movement_delay = 150  # milliseconds between moves
     
     def update(self, events, dt):
         self.keys_just_pressed.clear()
@@ -22,33 +20,24 @@ class InputHandler:
         for i, pressed in enumerate(keys):
             if pressed:
                 self.keys_pressed.add(i)
-        
-        # Update movement timer
-        if self.movement_timer > 0:
-            self.movement_timer -= dt
     
     def get_movement_direction(self):
-        if self.movement_timer > 0:
-            return None
-            
-        direction = None
+        # Read current key states directly to avoid any mismatch
+        keys = pygame.key.get_pressed()
         
-        if pygame.K_UP in self.keys_pressed or pygame.K_w in self.keys_pressed:
-            direction = UP
-        elif pygame.K_DOWN in self.keys_pressed or pygame.K_s in self.keys_pressed:
-            direction = DOWN
-        elif pygame.K_LEFT in self.keys_pressed or pygame.K_a in self.keys_pressed:
-            direction = LEFT
-        elif pygame.K_RIGHT in self.keys_pressed or pygame.K_d in self.keys_pressed:
-            direction = RIGHT
+        if keys[K_UP] or keys[K_w]:
+            return UP
+        if keys[K_DOWN] or keys[K_s]:
+            return DOWN
+        if keys[K_LEFT] or keys[K_a]:
+            return LEFT
+        if keys[K_RIGHT] or keys[K_d]:
+            return RIGHT
         
-        if direction:
-            self.movement_timer = self.movement_delay
-            
-        return direction
+        return None
     
     def is_bomb_key_pressed(self):
-        return pygame.K_SPACE in self.keys_just_pressed
+        return K_SPACE in self.keys_just_pressed
     
     def is_quit_requested(self):
-        return pygame.K_ESCAPE in self.keys_just_pressed
+        return K_ESCAPE in self.keys_just_pressed

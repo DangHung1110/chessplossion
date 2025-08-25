@@ -8,24 +8,54 @@ class GameMap:
         self.tile_size = TILE_SIZE
 
     def create_map(self):
+        import random
         grid = []
-        
+
         for y in range(GRID_HEIGHT):
             row = []
             for x in range(GRID_WIDTH):
                 # Tường viền
-                if x == 0 or x == GRID_WIDTH-1 or y == 0 or y == GRID_HEIGHT-1:
+                if x == 0 or x == GRID_WIDTH - 1 or y == 0 or y == GRID_HEIGHT - 1:
                     row.append(WALL)
-                # Tường cột chẵn/hàng chẵn (như Bomberman classic)
+                # Cột tường cố định ở các vị trí chẵn-chẵn (Bomberman/Chessplosion-style)
                 elif x % 2 == 0 and y % 2 == 0:
                     row.append(WALL)
-                # Destructible walls (random)
-                elif (x + y) % 3 == 0 and not (x < 3 and y < 3):  # Không đặt gần spawn
-                    row.append(DESTRUCTIBLE_WALL)
                 else:
+                    # Mặc định rỗng, lát nữa sẽ rải tường phá được
                     row.append(EMPTY)
             grid.append(row)
-        
+
+        # Vùng spawn an toàn cho 2 góc đối diện (mỗi vùng 3x3, clear lối ra)
+        def clear_spawn_area(cx, cy):
+            safe_coords = [
+                (cx, cy), (cx + 1, cy), (cx, cy + 1)
+            ]
+            for sx, sy in safe_coords:
+                if 0 <= sx < GRID_WIDTH and 0 <= sy < GRID_HEIGHT and grid[sy][sx] != WALL:
+                    grid[sy][sx] = EMPTY
+
+        # Spawn 1: (1,1). Spawn 2: (GRID_WIDTH-2, GRID_HEIGHT-2)
+        clear_spawn_area(1, 1)
+        clear_spawn_area(GRID_WIDTH - 2, GRID_HEIGHT - 2)
+
+        # Rải tường phá được (không đặt vào tường cứng hay vùng spawn)
+        for y in range(1, GRID_HEIGHT - 1):
+            for x in range(1, GRID_WIDTH - 1):
+                if grid[y][x] == EMPTY:
+                    # Tránh 2 vùng spawn mở rộng 2x2
+                    in_spawn1 = (x <= 2 and y <= 2)
+                    in_spawn2 = (x >= GRID_WIDTH - 3 and y >= GRID_HEIGHT - 3)
+                    if not in_spawn1 and not in_spawn2:
+                        if random.random() < 0.35:
+                            grid[y][x] = DESTRUCTIBLE_WALL
+
+        # Debug
+        print(f"Map created: {GRID_WIDTH}x{GRID_HEIGHT}")
+        print(f"Player1 spawn (1,1): {grid[1][1]} (0=EMPTY, 1=WALL, 2=DESTRUCTIBLE)")
+        print(
+            f"Player2 spawn ({GRID_WIDTH-2},{GRID_HEIGHT-2}): {grid[GRID_HEIGHT-2][GRID_WIDTH-2]}"
+        )
+
         return grid
     
     def get_tile(self, x, y):

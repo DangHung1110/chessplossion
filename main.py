@@ -1,4 +1,3 @@
-
 import pygame
 import sys
 from core.settings import *
@@ -28,7 +27,7 @@ class Game:
         print(f"Player 2 (Red): Coming soon...")
         print(f"SPACE: Place bomb | ESC: Quit")
     
-    def handle_events(self):
+    def handle_events(self, dt):
         events = pygame.event.get()
         
         for event in events:
@@ -36,7 +35,6 @@ class Game:
                 self.running = False
         
         # Update input handler
-        dt = self.clock.get_time()
         self.input_handler.update(events, dt)
         
         # Check quit
@@ -46,9 +44,18 @@ class Game:
         # Handle player movement
         direction = self.input_handler.get_movement_direction()
         if direction:
+            print(f"Movement input detected: {direction}")
             moved = self.player1.move(direction, self.game_map)
             if moved:
                 print(f"Player moved to ({self.player1.grid_x}, {self.player1.grid_y})")
+            else:
+                print(f"Player could not move to {direction}")
+        else:
+            # Debug: show current keys pressed
+            keys = pygame.key.get_pressed()
+            if any([keys[pygame.K_UP], keys[pygame.K_DOWN], keys[pygame.K_LEFT], keys[pygame.K_RIGHT], 
+                   keys[pygame.K_w], keys[pygame.K_s], keys[pygame.K_a], keys[pygame.K_d]]):
+                print("Keys are pressed but no direction detected")
         
         # Handle bomb placement
         if self.input_handler.is_bomb_key_pressed():
@@ -92,17 +99,15 @@ class Game:
     
     def run(self):
         print("Starting game loop...")
-        
+
         while self.running:
-            self.handle_events()
-            
+            # Lấy dt sau khi đã tick FPS
+            dt = self.clock.tick(FPS)  
+
+            self.handle_events(dt)
             self.update()
-            
             self.draw()
-            
-            # Control FPS
-            self.clock.tick(FPS)
-        
+
         # Cleanup
         pygame.quit()
         print("Game closed successfully!")
